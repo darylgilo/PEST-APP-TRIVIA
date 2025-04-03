@@ -1,9 +1,12 @@
-import { Suspense } from "react";
+import { Suspense, lazy } from "react";
 import { useRoutes, Routes, Route } from "react-router-dom";
 import Home from "./components/home";
 import routes from "tempo-routes";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
+
+// Lazy load components for better performance
+const SignUp = lazy(() => import("./components/SignUp"));
 
 function App() {
   return (
@@ -13,6 +16,7 @@ function App() {
           <>
             <Routes>
               <Route path="/" element={<Home />} />
+              <Route path="/signup" element={<SignUp />} />
             </Routes>
             {import.meta.env.VITE_TEMPO === "true" && useRoutes(routes)}
           </>

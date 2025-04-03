@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
+import { useAuth } from "../contexts/AuthContext";
 import {
   Dialog,
   DialogContent,
@@ -47,6 +48,7 @@ const PDFViewer = ({
   onEditDocument = () => {},
   onDeleteDocument = () => {},
 }: PDFViewerProps) => {
+  const { user, isAdmin } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(10); // This would be determined from the actual PDF
   const [zoomLevel, setZoomLevel] = useState([100]);
@@ -139,34 +141,42 @@ const PDFViewer = ({
           <Button variant="outline" size="sm">
             <RotateCw className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4" />
-          </Button>
+          {/* Download button only visible to logged in users */}
+          {user && (
+            <Button variant="outline" size="sm">
+              <Download className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </div>
 
       {/* Document Title and Actions */}
       <div className="flex justify-between items-center p-2 bg-muted/30">
         <h2 className="text-lg font-semibold">{documentTitle}</h2>
-        <div className="flex space-x-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowEditDialog(true)}
-          >
-            <Edit className="h-4 w-4 mr-1" /> Edit
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowDeleteDialog(true)}
-          >
-            <Trash className="h-4 w-4 mr-1" /> Delete
-          </Button>
-          <Button variant="ghost" size="sm" onClick={onAddDocument}>
-            <Plus className="h-4 w-4 mr-1" /> Add New
-          </Button>
-        </div>
+        {/* Admin-only actions */}
+        {isAdmin() ? (
+          <div className="flex space-x-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowEditDialog(true)}
+            >
+              <Edit className="h-4 w-4 mr-1" /> Edit
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowDeleteDialog(true)}
+            >
+              <Trash className="h-4 w-4 mr-1" /> Delete
+            </Button>
+            <Button variant="ghost" size="sm" onClick={onAddDocument}>
+              <Plus className="h-4 w-4 mr-1" /> Add New
+            </Button>
+          </div>
+        ) : (
+          <div>{/* Non-admin users see no document management buttons */}</div>
+        )}
       </div>
 
       {/* PDF Viewer */}
