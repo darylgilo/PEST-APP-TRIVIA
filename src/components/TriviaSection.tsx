@@ -1,5 +1,12 @@
-import React, { useState } from "react";
-import { Search, Plus, Edit, Trash2, ArrowLeft } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import {
+  Search,
+  Plus,
+  Edit,
+  Trash2,
+  ArrowLeft,
+  ShieldAlert,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -30,6 +37,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useAuth } from "../contexts/AuthContext";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface TriviaItem {
   id: string;
@@ -44,6 +58,7 @@ interface TriviaSectionProps {
 }
 
 const TriviaSection = ({ type = "pest", onBack }: TriviaSectionProps) => {
+  const { user, isAdmin } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTrivia, setSelectedTrivia] = useState<TriviaItem | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -155,49 +170,67 @@ const TriviaSection = ({ type = "pest", onBack }: TriviaSectionProps) => {
               className="pl-10 w-64"
             />
           </div>
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add New Trivia
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add New Trivia</DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="title">Title</Label>
-                  <Input
-                    id="title"
-                    value={newTriviaTitle}
-                    onChange={(e) => setNewTriviaTitle(e.target.value)}
-                    placeholder="Enter trivia title"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="content">Content</Label>
-                  <Textarea
-                    id="content"
-                    value={newTriviaContent}
-                    onChange={(e) => setNewTriviaContent(e.target.value)}
-                    placeholder="Enter trivia content"
-                    rows={5}
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsAddDialogOpen(false)}
-                >
-                  Cancel
+          {isAdmin() ? (
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add New Trivia
                 </Button>
-                <Button onClick={handleAddTrivia}>Save</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add New Trivia</DialogTitle>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="title">Title</Label>
+                    <Input
+                      id="title"
+                      value={newTriviaTitle}
+                      onChange={(e) => setNewTriviaTitle(e.target.value)}
+                      placeholder="Enter trivia title"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="content">Content</Label>
+                    <Textarea
+                      id="content"
+                      value={newTriviaContent}
+                      onChange={(e) => setNewTriviaContent(e.target.value)}
+                      placeholder="Enter trivia content"
+                      rows={5}
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsAddDialogOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button onClick={handleAddTrivia}>Save</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          ) : (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div>
+                    <Button disabled variant="outline">
+                      <ShieldAlert className="h-4 w-4 mr-2" />
+                      Admin Only
+                    </Button>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Only administrators can add new trivia items</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </div>
       </div>
 
@@ -215,37 +248,56 @@ const TriviaSection = ({ type = "pest", onBack }: TriviaSectionProps) => {
                 <p className="text-sm">{trivia.content}</p>
               </CardContent>
               <CardFooter className="flex justify-end gap-2 pt-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => openEditDialog(trivia)}
-                >
-                  <Edit className="h-4 w-4 mr-1" /> Edit
-                </Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="destructive" size="sm">
-                      <Trash2 className="h-4 w-4 mr-1" /> Delete
+                {isAdmin() ? (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openEditDialog(trivia)}
+                    >
+                      <Edit className="h-4 w-4 mr-1" /> Edit
                     </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This action cannot be undone. This will permanently
-                        delete the trivia item.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => handleDeleteTrivia(trivia.id)}
-                      >
-                        Delete
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive" size="sm">
+                          <Trash2 className="h-4 w-4 mr-1" /> Delete
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently
+                            delete the trivia item.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDeleteTrivia(trivia.id)}
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </>
+                ) : (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button disabled variant="outline" size="sm">
+                          <ShieldAlert className="h-4 w-4 mr-1" /> Admin Only
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>
+                          Only administrators can edit or delete trivia items
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
               </CardFooter>
             </Card>
           ))

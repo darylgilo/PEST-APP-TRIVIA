@@ -7,6 +7,7 @@ import { Search, Plus, Menu } from "lucide-react";
 import PDFViewer from "./PDFViewer";
 import DocumentList from "./DocumentList";
 import TriviaSection from "./TriviaSection";
+import UserLogin from "./UserLogin";
 
 const Home = () => {
   const [activeTab, setActiveTab] = useState("pdf-viewer");
@@ -56,6 +57,10 @@ const Home = () => {
             </Tabs>
           </div>
 
+          <div className="hidden md:block">
+            <UserLogin />
+          </div>
+
           <Button
             variant="ghost"
             size="icon"
@@ -90,6 +95,10 @@ const Home = () => {
               </TabsTrigger>
             </TabsList>
           </Tabs>
+
+          <div className="mt-4 flex justify-center">
+            <UserLogin />
+          </div>
         </div>
       )}
 
